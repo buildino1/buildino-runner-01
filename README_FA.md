@@ -1,36 +1,35 @@
-# Buildino Public Runner Template v0.4.1
+# Buildino Public Runner Template v0.5.0
 
-این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای آزمایشی Flutter استفاده می‌شود.
+این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Flutter استفاده می‌شود.
 
 ساختار نصب‌شده:
 
 ```text
-.github/workflows/buildino-runner-wf6.yml
-.github/workflows/buildino-cleanup-wf3.yml
+.github/workflows/buildino-runner-wf7.yml
+.github/workflows/buildino-cleanup-wf4.yml
 scripts/find_flutter_project.py
 scripts/prepare_source.py
-scripts/run_flutter_build.sh
 scripts/validate_zip.py
+scripts/buildino_preflight.py
+scripts/analyze_build_error.py
+scripts/run_flutter_build.sh
 README_FA.md
 LICENSE
 ```
 
-## اتصال به Buildino
+## قابلیت‌های v0.5.0
 
-1. GitHub App با نام `Buildino Runner Manager` روی حساب مالک Repository نصب شود.
-2. هنگام نصب App، همین Repository در بخش `Only select repositories` انتخاب شود.
-3. در پنل مدیریت تلگرام Buildino، لینک Repository ارسال شود.
-4. Buildino نصب App را بررسی می‌کند، فایل‌های قالب را نصب یا به‌روزرسانی می‌کند و سلامت Workflowها را می‌سنجد.
+- تشخیص Java 11، 17 یا 21 از تنظیمات واقعی Gradle/Kotlin.
+- تشخیص Flavorهای Android و ساخت خروجی جدا برای هر Flavor.
+- ساخت Keystore موقت فقط برای عبور امن Build پروژه‌های فاقد امضای معتبر.
+- اعمال امضای پایدار fallback بیلدینو در Job جدا و پس از حذف سورس پروژه.
+- گزارش خطای فارسی شامل دسته، مرحله، علت، راه‌حل و خلاصه فنی Sanitized.
+- Workflow در شکست واقعی قرمز می‌شود، ولی نتیجه پیش از شکست به ربات ارسال می‌شود.
 
-برای Runner هیچ PAT، Secret یا رمز حساب لازم نیست. کنترل Repository از Installation Token کوتاه‌عمر GitHub App انجام می‌شود و ارتباط Workflow با Worker از GitHub Actions OIDC استفاده می‌کند.
+## امنیت
 
-## امنیت و نگهداری
-
-- سورس پروژه در Commit، Release یا Actions Artifact قرار نمی‌گیرد.
-- فقط خروجی نهایی APK/AAB در Release موقت عمومی منتشر می‌شود.
-- Releaseها، Runهای تکمیل‌شده و Cacheهای موقت Buildino پس از حدود ۱۲ ساعت پاک می‌شوند.
-- Repository باید Public، فعال و غیرآرشیوی باقی بماند.
-
-## Hotfix 0.4.1
-
-اسکریپت Build عمداً با `bash` اجرا می‌شود؛ بنابراین نصب فایل‌ها از طریق GitHub Contents API و ازبین‌رفتن executable bit باعث خطای 126 نمی‌شود. مسیر Cache بین Job ساخت و انتشار نیز یکسان‌سازی شده است.
+- سورس در Commit، Release یا Actions Artifact ذخیره نمی‌شود.
+- Keystore پایدار بیلدینو هرگز وارد Job اجرای سورس نمی‌شود.
+- Job Build فقط از Keystore موقت ۳۰روزه و تصادفی استفاده می‌کند.
+- امضای پایدار در Job انتشار و بعد از حذف سورس انجام می‌شود.
+- خروجی‌ها حدود ۱۲ ساعت در Release عمومی موقت نگهداری می‌شوند.
