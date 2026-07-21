@@ -1,12 +1,12 @@
-# Buildino Public Runner Template v0.4.0
+# Buildino Public Runner Template v0.4.1
 
 این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای آزمایشی Flutter استفاده می‌شود.
 
 ساختار نصب‌شده:
 
 ```text
-.github/workflows/buildino-runner-wf5.yml
-.github/workflows/buildino-cleanup-wf2.yml
+.github/workflows/buildino-runner-wf6.yml
+.github/workflows/buildino-cleanup-wf3.yml
 scripts/find_flutter_project.py
 scripts/prepare_source.py
 scripts/run_flutter_build.sh
@@ -30,3 +30,7 @@ LICENSE
 - فقط خروجی نهایی APK/AAB در Release موقت عمومی منتشر می‌شود.
 - Releaseها، Runهای تکمیل‌شده و Cacheهای موقت Buildino پس از حدود ۱۲ ساعت پاک می‌شوند.
 - Repository باید Public، فعال و غیرآرشیوی باقی بماند.
+
+## Hotfix 0.4.1
+
+اسکریپت Build عمداً با `bash` اجرا می‌شود؛ بنابراین نصب فایل‌ها از طریق GitHub Contents API و ازبین‌رفتن executable bit باعث خطای 126 نمی‌شود. مسیر Cache بین Job ساخت و انتشار نیز یکسان‌سازی شده است.
