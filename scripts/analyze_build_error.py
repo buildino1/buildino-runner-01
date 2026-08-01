@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 RULES = [
-    ("source_structure", [r"No Flutter or Dart application project candidate was found", r"Selected project does not contain pubspec\.yaml", r"Selected project does not contain a lib directory"],
+    ("source_structure", [r"No Flutter or Dart application project candidate was found", r"No supported Android project was found", r"Selected project does not contain pubspec\.yaml", r"Selected project does not contain a lib directory"],
      "ساختار سورس یا ریشه پروژه", "بیلدینو نتوانست یک پروژه Flutter/Dart معتبر را از ساختار ZIP انتخاب کند.",
      "وجود pubspec.yaml و پوشه lib را بررسی کنید. بیلدینو پوشه‌های تو‌در‌تو را جست‌وجو می‌کند و گزارش نامزدهای پیدا‌شده را ثبت می‌کند."),
     ("android_platform_prepare", [r"Android platform remains incomplete", r"Flutter could not generate a complete Android platform", r"android_platform_prepare"],
@@ -26,6 +26,18 @@ RULES = [
     ("pub_get", [r"version solving failed", r"Because .* depends on", r"pub get failed", r"doesn't match any versions"],
      "تعارض Dependencyهای Flutter", "حل نسخه‌های pubspec ناموفق است یا یک Package با SDK سازگار نیست.",
      "محدوده نسخه Packageها، sdk constraint و dependency_overrides را بررسی کنید."),
+    ("javascript_dependency", [r"npm ERR!", r"YN[0-9]{4}", r"ERR_PNPM", r"Could not resolve dependency", r"ERESOLVE"],
+     "خطای Dependencyهای JavaScript", "نصب Dependencyهای React Native با npm، Yarn یا pnpm ناموفق شد.",
+     "اولین خطای Package Manager را بررسی کنید؛ نسخه Node.js، Lockfile و Packageهای ناسازگار را هماهنگ کنید."),
+    ("react_native_compile", [r"Unable to resolve module", r"Metro.*error", r"SyntaxError", r"TypeError:.*undefined", r"React Native.*build failed"],
+     "خطای کدنویسی React Native", "باندل JavaScript/TypeScript یا کد Native پروژه React Native کامپایل نشد.",
+     "اولین خطای Metro، TypeScript یا Gradle را اصلاح کنید؛ خطاهای بعدی معمولاً پیامد همان خطای اول هستند."),
+    ("python_android_dependency", [r"No matching distribution found", r"Could not find a version that satisfies", r"ModuleNotFoundError", r"ResolutionImpossible"],
+     "خطای Dependencyهای Python Android", "نصب یا حل Dependencyهای Python برای خروجی Android ناموفق شد.",
+     "نسخه Python و Packageهای ثبت‌شده در buildozer.spec یا pyproject.toml را بررسی کنید."),
+    ("python_android_build", [r"buildozer.*error", r"python-for-android", r"briefcase.*error", r"Chaquopy", r"Command failed:.*android"],
+     "خطای ساخت Python Android", "ابزار Android پروژه Python نتوانست APK/AAB تولید کند.",
+     "اولین خطای Buildozer، Briefcase، python-for-android یا Chaquopy را بررسی کنید."),
     ("dart_compile", [r"Error: .*\.dart:", r"Target kernel_snapshot_program failed", r"Compilation failed", r"The getter .* isn't defined"],
      "خطای کدنویسی Dart/Flutter", "کامپایل سورس Dart به‌دلیل خطای نحوی، نوع داده یا API نامعتبر متوقف شده است.",
      "اولین خطای Dart را اصلاح کنید؛ خطاهای بعدی معمولاً پیامد همان خطای اول هستند."),
