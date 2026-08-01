@@ -8,6 +8,12 @@ import re
 from pathlib import Path
 
 RULES = [
+    ("source_structure", [r"No Flutter or Dart application project candidate was found", r"Selected project does not contain pubspec\.yaml", r"Selected project does not contain a lib directory"],
+     "ساختار سورس یا ریشه پروژه", "بیلدینو نتوانست یک پروژه Flutter/Dart معتبر را از ساختار ZIP انتخاب کند.",
+     "وجود pubspec.yaml و پوشه lib را بررسی کنید. بیلدینو پوشه‌های تو‌در‌تو را جست‌وجو می‌کند و گزارش نامزدهای پیدا‌شده را ثبت می‌کند."),
+    ("android_platform_prepare", [r"Android platform remains incomplete", r"Flutter could not generate a complete Android platform", r"android_platform_prepare"],
+     "آماده‌سازی پلتفرم Android", "پوشه Android وجود نداشت یا ناقص بود و تولید/ادغام خودکار آن کامل نشد.",
+     "جزئیات Project Prepare را بررسی کنید؛ مسیر Overlay و خروجی هر روش flutter create در گزارش ثبت شده است."),
     ("android_signing", [r"Missing android/key\.properties", r"keystore.*not found", r"signingConfig", r"Keystore was tampered"],
      "خطای امضای Android", "اطلاعات یا فایل امضای Release پروژه ناقص یا نامعتبر است.",
      "برای خروجی آزمایشی، بیلدینو از امضای fallback استفاده می‌کند. برای انتشار یا آپدیت اپ، Keystore اصلی همان برنامه لازم است."),
@@ -70,26 +76,70 @@ def main() -> int:
     parser.add_argument("--code", type=int, required=True)
     parser.add_argument("--log", action="append", default=[])
     parser.add_argument("--preflight")
+    parser.add_argument("--project-discovery")
+    parser.add_argument("--project-prepare")
+    parser.add_argument("--auto-fixes")
+    parser.add_argument("--adaptive-fixes")
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    text_parts = []
+    log_parts: list[tuple[Path, str]] = []
     for value in args.log:
         path = Path(value)
         if path.is_file():
-            text_parts.append(path.read_text(encoding="utf-8", errors="replace"))
-    text = "\n".join(text_parts)
+            log_parts.append((path, path.read_text(encoding="utf-8", errors="replace")))
+    text = "\n".join(content for _, content in log_parts)
+    primary_text = text
+    primary_log = None
+    for path, content in reversed(log_parts):
+        if re.search(r"Error:|FAILURE:|BUILD FAILED|Exception|e: file://", content, re.I):
+            primary_text = content
+            primary_log = path.name
+            break
     category = "unknown"
     title = "خطای نامشخص Build"
     cause = "فرآیند Build متوقف شد اما الگوی خطا هنوز در دسته‌بندی‌های شناخته‌شده ثبت نشده است."
     solution = "جزئیات فنی زیر و Workflow Run را بررسی کنید؛ برای توسعه موتور تشخیص، همین گزارش کافی است."
-    for rule_category, patterns, rule_title, rule_cause, rule_solution in RULES:
-        if any(re.search(pattern, text, re.I | re.M) for pattern in patterns):
-            category, title, cause, solution = rule_category, rule_title, rule_cause, rule_solution
+    for candidate_text in (primary_text, text):
+        matched = False
+        for rule_category, patterns, rule_title, rule_cause, rule_solution in RULES:
+            if any(re.search(pattern, candidate_text, re.I | re.M) for pattern in patterns):
+                category, title, cause, solution = rule_category, rule_title, rule_cause, rule_solution
+                matched = True
+                break
+        if matched:
             break
     preflight = {}
     if args.preflight and Path(args.preflight).is_file():
         preflight = json.loads(Path(args.preflight).read_text(encoding="utf-8"))
-    excerpt = select_excerpt(text.splitlines())
+    project_discovery = {}
+    if args.project_discovery and Path(args.project_discovery).is_file():
+        project_discovery = json.loads(Path(args.project_discovery).read_text(encoding="utf-8"))
+    project_prepare = {}
+    if args.project_prepare and Path(args.project_prepare).is_file():
+        project_prepare = json.loads(Path(args.project_prepare).read_text(encoding="utf-8"))
+    fix_payloads = []
+    for value, fallback in (
+        (args.auto_fixes, "auto-fixes.json"),
+        (args.adaptive_fixes, "adaptive-fixes.json"),
+    ):
+        path = Path(value) if value else args.output.parent / fallback
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
+            fix_payloads.append(payload)
+    applied_fixes = [item for payload in fix_payloads for item in payload.get("applied", [])]
+    fix_attempts = [item for payload in fix_payloads for item in payload.get("attempts", [])]
+    if applied_fixes:
+        solution = (
+            solution
+            + " اصلاح سازگاری رسمی Flutter یک‌بار در Workspace موقت اعمال شد، "
+              "اما Build دوم با خطای نهایی بالا متوقف شد."
+        )
+    excerpt = select_excerpt(primary_text.splitlines())
     report = {
         "category": category,
         "title": title,
@@ -103,6 +153,22 @@ def main() -> int:
         "flavors": preflight.get("flavors", []),
         "fallback_signing_used": bool(preflight.get("fallback_signing_used", False)),
         "signing_reason": preflight.get("signing_reason"),
+        "primary_log": primary_log,
+        "auto_fixes": applied_fixes,
+        "auto_fix_attempts": fix_attempts,
+        "project_discovery": {
+            "candidate_count": project_discovery.get("candidate_count"),
+            "ambiguous": project_discovery.get("ambiguous"),
+            "selected": project_discovery.get("selected"),
+        } if project_discovery else None,
+        "project_prepare": {
+            "mode": project_prepare.get("mode"),
+            "android_generated": project_prepare.get("android_generated"),
+            "overlay_path": project_prepare.get("overlay_path"),
+            "overlay_merged": project_prepare.get("overlay_merged"),
+            "actions": project_prepare.get("actions", []),
+            "error": project_prepare.get("error"),
+        } if project_prepare else None,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
