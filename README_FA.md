@@ -1,43 +1,42 @@
-# Buildino Public Runner Template v0.6.0
+# Buildino Public Runner Template v0.7.0
 
-این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Flutter استفاده می‌شود.
+این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Android استفاده می‌شود.
 
-## موتور Universal Adaptive Build
+## Frameworkهای پشتیبانی‌شده
 
-- جست‌وجوی کامل ZIP و انتخاب ریشه پروژه با امتیازدهی، حتی در پوشه‌های تو‌در‌تو.
-- پذیرش پروژه Flutter فاقد `android/` یا دارای Android ناقص.
-- تولید خودکار پلتفرم Android با `flutter create` در Workspace موقت.
-- شناسایی و ادغام Android Overlay از مسیرهای متداول و ساختارهای مشابه.
-- تشخیص Java 8، 11، 17 یا 21، Gradle، SDK/NDK، Flavorها و Entry Pointهای main*.dart.
-- نصب best-effort اجزای Android SDK موردنیاز پیش از Build.
-- Retry محدود برای خطاهای موقت شبکه.
-- Auto-Fix قطعی برای مهاجرت‌های رسمی Flutter Theme و خطاهای مشخص Android/Gradle مانند namespace، minSdk، compileSdk و exported.
-- گزارش فارسی شامل ریشه انتخاب‌شده، نوع آماده‌سازی، تغییرات، اولین و آخرین خطا.
-- امضای fallback پایدار فقط در Job ایزوله انتشار.
+- Flutter → APK / AAB
+- React Native CLI و Expo سازگار با prebuild → APK / AAB
+- Python Android: Buildozer/python-for-android، BeeWare Briefcase و Chaquopy → APK / AAB
 
-## مرزهای امنیتی
+پروژه‌های Python عمومی مانند Django، Flask، FastAPI، ربات‌ها، اسکریپت‌های معمولی و برنامه‌های دسکتاپ پذیرفته نمی‌شوند.
 
-- ZIP اصلی کاربر تغییر نمی‌کند؛ تمام تغییرات فقط در Workspace موقت هستند.
-- Keystore پایدار بیلدینو وارد Job اجرای سورس نمی‌شود.
-- Path Traversal، Symlink، ZIP Bomb، فایل رمزگذاری‌شده، Timeout و Retry نامحدود مسدود می‌شوند.
-- منطق برنامه، Package Name، Firebase و Secretهای پروژه بدون Diagnostic قطعی تغییر داده نمی‌شوند.
-- خروجی‌ها حدود ۱۲ ساعت در Release عمومی موقت نگهداری می‌شوند.
+## موتور Multi-Framework Android
+
+- تشخیص خودکار نوع پروژه و ریشه واقعی در ZIPهای تو‌در‌تو.
+- انتخاب خودکار Flutter، Node.js، Python، Java، Gradle، Android SDK و NDK.
+- npm، Yarn و pnpm برای React Native با Retry محدود خطاهای شبکه.
+- ساخت Android برای Expo فقط در صورت وجود تنظیمات معتبر Expo.
+- Buildozer/python-for-android، Briefcase Android و Gradle/Chaquopy برای Python Android.
+- امضای اصلی پروژه یا fallback پایدار بیلدینو در Job ایزوله انتشار.
+- گزارش فارسی شامل Framework، مرحله شکست، ابزارها، علت، راه‌حل و خلاصه فنی.
+- حفظ کامل موتور Universal Adaptive Flutter نسخه 0.6.0.
+
+## امنیت
+
+- ZIP، Path Traversal، Symlink، ZIP Bomb و فایل رمزگذاری‌شده بررسی می‌شوند.
+- سورس به Secretهای Worker یا Keystore پایدار دسترسی ندارد.
+- Keystore fallback فقط در Job انتشار دریافت و پس از امضا حذف می‌شود.
+- Workspace بعد از Build پاک می‌شود.
+- Retry و زمان Build محدود است.
 
 ## فایل‌های فعال
 
 ```text
-.github/workflows/buildino-runner-wf9.yml
-.github/workflows/buildino-cleanup-wf6.yml
-scripts/find_flutter_project.py
-scripts/prepare_source.py
-scripts/prepare_flutter_platform.py
-scripts/validate_zip.py
-scripts/buildino_preflight.py
-scripts/ensure_android_components.py
-scripts/apply_flutter_compat_fixes.py
-scripts/apply_adaptive_project_fixes.py
-scripts/analyze_build_error.py
+.github/workflows/buildino-runner-wf10.yml
+.github/workflows/buildino-cleanup-wf7.yml
+scripts/run_android_build.sh
 scripts/run_flutter_build.sh
-README_FA.md
-LICENSE
+scripts/run_react_native_build.sh
+scripts/run_python_android_build.sh
+scripts/find_android_project.py
 ```
