@@ -39,6 +39,10 @@ def required_java(project: Path) -> int:
         if any(re.search(pattern, joined) for pattern in patterns):
             return version
     major, minor = gradle_version(project)
+    # Runtime compatibility for older Android projects. Source/target compatibility
+    # set to 1.8 does not itself force JDK 8, so only the Gradle wrapper drives this.
+    if (major, minor) < (5, 0):
+        return 8
     if (major, minor) < (7, 3):
         return 11
     return 17
@@ -90,6 +94,63 @@ def detect_flavors(project: Path) -> list[str]:
                 names.append(name)
         return names
     return []
+
+
+
+def detect_android_versions(project: Path) -> dict[str, str | int | None]:
+    texts = []
+    for path in (
+        project / "android/app/build.gradle",
+        project / "android/app/build.gradle.kts",
+        project / "android/build.gradle",
+        project / "android/build.gradle.kts",
+    ):
+        texts.append(read_text(path))
+    joined = "\n".join(texts)
+
+    def first_int(patterns: tuple[str, ...]) -> int | None:
+        for pattern in patterns:
+            match = re.search(pattern, joined, re.I)
+            if match:
+                return int(match.group(1))
+        return None
+
+    compile_sdk = first_int((
+        r"\bcompileSdk\s*=\s*(\d+)",
+        r"\bcompileSdkVersion\s+(\d+)",
+    ))
+    min_sdk = first_int((
+        r"\bminSdk\s*=\s*(\d+)",
+        r"\bminSdkVersion\s+(\d+)",
+    ))
+    target_sdk = first_int((
+        r"\btargetSdk\s*=\s*(\d+)",
+        r"\btargetSdkVersion\s+(\d+)",
+    ))
+    ndk_match = re.search(r"\bndkVersion\s*=\s*['\"]([^'\"]+)['\"]|\bndkVersion\s+['\"]([^'\"]+)['\"]", joined)
+    build_tools_match = re.search(r"\bbuildToolsVersion\s*(?:=\s*)?['\"]([^'\"]+)['\"]", joined)
+    cmake_match = re.search(r"\bcmake\s*\{[^{}]*\bversion\s*(?:=\s*)?['\"]([^'\"]+)['\"]", joined, re.S)
+    return {
+        "compile_sdk": compile_sdk,
+        "min_sdk": min_sdk,
+        "target_sdk": target_sdk,
+        "ndk_version": next((value for value in (ndk_match.group(1), ndk_match.group(2)) if value), None) if ndk_match else None,
+        "build_tools_version": build_tools_match.group(1) if build_tools_match else None,
+        "cmake_version": cmake_match.group(1) if cmake_match else None,
+    }
+
+
+def detect_entrypoints(project: Path) -> list[str]:
+    lib = project / "lib"
+    if not lib.is_dir():
+        return []
+    preferred = []
+    for path in sorted(lib.glob("main*.dart")):
+        if path.is_file():
+            preferred.append(str(path.relative_to(project)))
+    if not preferred and (lib / "app.dart").is_file():
+        preferred.append("lib/app.dart")
+    return preferred
 
 
 def parse_properties(path: Path) -> dict[str, str]:
@@ -190,14 +251,17 @@ def main() -> int:
     ephemeral: dict[str, str] | None = None
     if fallback:
         ephemeral = install_ephemeral_keystore(project, java_home)
+    android_versions = detect_android_versions(project)
     data = {
         "java_version": java_version,
         "java_home": java_home,
         "gradle_version": ".".join(map(str, gradle_version(project))),
         "flavors": detect_flavors(project),
+        "entrypoints": detect_entrypoints(project),
         "fallback_signing_used": fallback,
         "signing_reason": signing_reason,
         "ephemeral_signing": ephemeral,
+        **android_versions,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
