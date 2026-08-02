@@ -1,4 +1,4 @@
-# Buildino Public Runner Template v0.9.0
+# Buildino Public Runner Template v0.9.1
 
 این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Android استفاده می‌شود.
 
@@ -23,7 +23,7 @@
 
 ## امنیت
 
-- ZIP، Path Traversal، Symlink، ZIP Bomb و فایل رمزگذاری‌شده بررسی می‌شوند.
+- ZIP از نظر خرابی و خروج از مسیر پروژه بررسی می‌شود؛ Symbolic Linkهای داخل پروژه تا حد ممکن به فایل عادی تبدیل می‌شوند تا Build متوقف نشود.
 - سورس به Secretهای Worker یا Keystore پایدار دسترسی ندارد.
 - Keystore fallback فقط در Job انتشار دریافت و پس از امضا حذف می‌شود.
 - Workspace بعد از Build پاک می‌شود.
@@ -32,8 +32,8 @@
 ## فایل‌های فعال
 
 ```text
-.github/workflows/buildino-runner-wf12.yml
-.github/workflows/buildino-cleanup-wf9.yml
+.github/workflows/buildino-runner-wf13.yml
+.github/workflows/buildino-cleanup-wf10.yml
 scripts/run_android_build.sh
 scripts/run_flutter_build.sh
 scripts/run_react_native_build.sh
