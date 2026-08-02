@@ -1,4 +1,4 @@
-# Buildino Public Runner Template v0.7.0
+# Buildino Public Runner Template v0.8.0
 
 این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Android استفاده می‌شود.
 
@@ -32,8 +32,8 @@
 ## فایل‌های فعال
 
 ```text
-.github/workflows/buildino-runner-wf10.yml
-.github/workflows/buildino-cleanup-wf7.yml
+.github/workflows/buildino-runner-wf11.yml
+.github/workflows/buildino-cleanup-wf8.yml
 scripts/run_android_build.sh
 scripts/run_flutter_build.sh
 scripts/run_react_native_build.sh
