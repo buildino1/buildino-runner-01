@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an uploaded source ZIP without extracting it."""
+"""Validate an uploaded source ZIP while allowing common project archive layouts."""
 
 from __future__ import annotations
 
@@ -29,6 +29,10 @@ def normalized_member(name: str) -> PurePosixPath:
     return path
 
 
+def is_symbolic_link(info: zipfile.ZipInfo) -> bool:
+    return stat.S_ISLNK(info.external_attr >> 16)
+
+
 def validate_zip(path: Path) -> tuple[int, int]:
     if not path.is_file():
         raise ZipValidationError(f"Archive not found: {path}")
@@ -42,6 +46,7 @@ def validate_zip(path: Path) -> tuple[int, int]:
 
     total_uncompressed = 0
     file_count = 0
+    symlink_count = 0
     with archive:
         infos = archive.infolist()
         if len(infos) > MAX_FILES:
@@ -49,15 +54,14 @@ def validate_zip(path: Path) -> tuple[int, int]:
 
         for info in infos:
             normalized_member(info.filename)
-            mode = info.external_attr >> 16
-            if stat.S_ISLNK(mode):
-                raise ZipValidationError(f"Symbolic links are not allowed: {info.filename}")
             if info.flag_bits & 0x1:
                 raise ZipValidationError(f"Encrypted ZIP entries are not supported: {info.filename}")
             if info.is_dir():
                 continue
 
             file_count += 1
+            if is_symbolic_link(info):
+                symlink_count += 1
             total_uncompressed += info.file_size
             if total_uncompressed > MAX_UNCOMPRESSED_BYTES:
                 raise ZipValidationError("Total uncompressed size exceeds 1.5 GB")
@@ -73,6 +77,11 @@ def validate_zip(path: Path) -> tuple[int, int]:
 
     if file_count == 0:
         raise ZipValidationError("ZIP archive is empty")
+    if symlink_count:
+        print(
+            f"Buildino compatibility: {symlink_count} symbolic link entries will be converted to regular files.",
+            file=sys.stderr,
+        )
     return file_count, total_uncompressed
 
 
