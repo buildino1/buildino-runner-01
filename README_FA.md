@@ -1,4 +1,4 @@
-# Buildino Public Runner Template v0.11.0
+# Buildino Public Runner Template v0.11.1
 
 این قالب برای Build چندسکویی بیلدینو استفاده می‌شود.
 
