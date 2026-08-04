@@ -1,40 +1,39 @@
-# Buildino Public Runner Template v0.9.1
+# Buildino Public Runner Template v0.10.0
 
 این Repository عمومی توسط GitHub App رسمی Buildino مدیریت می‌شود و برای Buildهای ایزوله Android استفاده می‌شود.
 
 ## Frameworkهای پشتیبانی‌شده
 
 - Flutter → APK / AAB
+- Native Android Java/Kotlin با Gradle → APK / AAB
 - React Native CLI و Expo سازگار با prebuild → APK / AAB
 - Python Android: Buildozer/python-for-android، BeeWare Briefcase و Chaquopy → APK / AAB
 
-پروژه‌های Python عمومی مانند Django، Flask، FastAPI، ربات‌ها، اسکریپت‌های معمولی و برنامه‌های دسکتاپ پذیرفته نمی‌شوند.
+## موتور Native Android
 
-## موتور Multi-Framework Android
+- تشخیص `settings.gradle` و `settings.gradle.kts` در ZIPهای تو‌در‌تو.
+- تشخیص ماژول دارای `com.android.application` بدون وابستگی به نام `app`.
+- پشتیبانی از `build.gradle` و `build.gradle.kts`.
+- اجرای `assembleRelease`، `bundleRelease` و Taskهای ماژول انتخاب‌شده.
+- انتخاب Java براساس Gradle و AGP.
+- استفاده از Gradle Wrapper و fallback موقت در صورت نبود Wrapper.
+- جمع‌آوری تمام خروجی‌های Release و امضای آن‌ها در Job ایزوله انتشار.
 
-- تشخیص خودکار نوع پروژه و ریشه واقعی در ZIPهای تو‌در‌تو.
-- انتخاب خودکار Flutter، Node.js، Python، Java، Gradle، Android SDK و NDK.
-- npm، Yarn و pnpm برای React Native با Retry محدود خطاهای شبکه.
-- ساخت Android برای Expo فقط در صورت وجود تنظیمات معتبر Expo.
-- Buildozer/python-for-android، Briefcase Android و Gradle/Chaquopy برای Python Android.
-- امضای اصلی پروژه یا fallback پایدار بیلدینو در Job ایزوله انتشار.
-- گزارش فارسی شامل Framework، مرحله شکست، ابزارها، علت، راه‌حل و خلاصه فنی.
-- حفظ کامل موتور Universal Adaptive Flutter نسخه 0.6.0.
+## سایر قابلیت‌ها
 
-## امنیت
-
-- ZIP از نظر خرابی و خروج از مسیر پروژه بررسی می‌شود؛ Symbolic Linkهای داخل پروژه تا حد ممکن به فایل عادی تبدیل می‌شوند تا Build متوقف نشود.
-- سورس به Secretهای Worker یا Keystore پایدار دسترسی ندارد.
-- Keystore fallback فقط در Job انتشار دریافت و پس از امضا حذف می‌شود.
-- Workspace بعد از Build پاک می‌شود.
-- Retry و زمان Build محدود است.
+- تشخیص خودکار نوع پروژه و ریشه واقعی.
+- Retry محدود خطاهای موقت شبکه.
+- گزارش فارسی شامل Framework، مرحله شکست، Java، Gradle، AGP، علت و راه‌حل.
+- Symbolic Linkهای پروژه تا حد ممکن به فایل عادی تبدیل می‌شوند.
 
 ## فایل‌های فعال
 
 ```text
-.github/workflows/buildino-runner-wf13.yml
-.github/workflows/buildino-cleanup-wf10.yml
+.github/workflows/buildino-runner-wf14.yml
+.github/workflows/buildino-cleanup-wf11.yml
 scripts/run_android_build.sh
+scripts/run_native_android_build.sh
+scripts/native_android_preflight.py
 scripts/run_flutter_build.sh
 scripts/run_react_native_build.sh
 scripts/run_python_android_build.sh
