@@ -58,6 +58,7 @@ set +e
 case "$framework" in
   flutter) bash scripts/run_flutter_build.sh ; rc=$? ;;
   react_native) bash scripts/run_react_native_build.sh ; rc=$? ;;
+  native_android) bash scripts/run_native_android_build.sh ; rc=$? ;;
   python_buildozer|python_briefcase|python_chaquopy)
     BUILDINO_PYTHON_FRAMEWORK="$framework" bash scripts/run_python_android_build.sh ; rc=$? ;;
   *) echo "Unsupported framework: $framework" >&2; rc=5 ;;
